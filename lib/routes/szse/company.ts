@@ -5,10 +5,29 @@ const baseUrl = 'https://www.szse.cn';
 
 export const route: Route = {
     path: '/company/:stock',
-    name: '深交所公司公告',
-    url: 'https://www.szse.cn/disclosure/listed/notice/index.html',
+    categories: ['finance'],
+    example: '/szse/company/002624',
+    parameters: {
+        stock: '股票代码，例如 002624',
+    },
+    features: {
+        requireConfig: false,
+        requirePuppeteer: false,
+        antiCrawler: false,
+        supportBT: false,
+        supportPodcast: false,
+        supportScihub: false,
+    },
+    radar: [
+        {
+            source: ['szse.cn/disclosure/listed/notice/index.html'],
+            target: '/company/:stock',
+        },
+    ],
+    name: '上市公司公告',
     maintainers: ['yhz200251'],
     handler,
+    url: 'szse.cn/disclosure/listed/notice/index.html',
 };
 
 async function handler(ctx) {
@@ -30,13 +49,14 @@ async function handler(ctx) {
     const list = response.data?.data || [];
 
     return {
-        title: `深交所公告 ${stock}`,
+        title: `深交所上市公司公告 - ${stock}`,
         link: `${baseUrl}/disclosure/listed/notice/index.html?stock=${stock}`,
         item: list.map((item) => ({
             title: item.title,
-            link: `https://disc.static.szse.cn/download${item.attachPath}`,
+            link: item.attachPath ? `https://disc.static.szse.cn/download${item.attachPath}` : `${baseUrl}/disclosure/listed/notice/index.html?stock=${stock}`,
             description: item.title,
-            pubDate: item.publishTime,
+            pubDate: item.publishTime ? new Date(item.publishTime).toUTCString() : undefined,
         })),
     };
+}
 }
